@@ -1,5 +1,5 @@
 # ============================================================
-# WinOptimize ULTIMATE (Menu + Boot + Gaming + Safe Engine)
+# WinOptimize FINAL (Stable + Smart + Boot Optimized)
 # Author: Harry (minimalharry)
 # ============================================================
 
@@ -10,13 +10,14 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     pause; exit
 }
 
-# UI
-function S($t){
+# ================= UI =================
+function Section($t){
     Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     Write-Host "  ✦ $t" -ForegroundColor Yellow
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 }
 function OK($m){Write-Host "  ✅ $m" -ForegroundColor Green}
+function INFO($m){Write-Host "  ℹ️  $m" -ForegroundColor DarkCyan}
 
 Clear-Host
 
@@ -28,51 +29,45 @@ Write-Host @"
 ╚███╔███╔╝██║██║ ╚████║╚██████╔╝██║        ██║
  ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝        ╚═╝
 
-        WinOptimize ULTIMATE
+        WinOptimize FINAL ENGINE
         github.com/minimalharry
 "@ -ForegroundColor Magenta
 
-# ============================================================
-# MAIN MENU
-# ============================================================
-S "MAIN MENU"
+# ================= MAIN MENU =================
+Section "MAIN MENU"
 
-$mainOptions = @(
-    "Optimization (Windows Tuning)",
-    "System Info",
+$main = @(
+    "Start Optimization",
+    "Show System Info",
     "Exit"
 )
 
-for ($i=0; $i -lt $mainOptions.Count; $i++){
-    Write-Host " [$i] $($mainOptions[$i])"
+for ($i=0; $i -lt $main.Count; $i++){
+    Write-Host " [$i] $($main[$i])"
 }
 
 $mainChoice = Read-Host "`nSelect option"
 
 if ($mainChoice -eq "2"){ exit }
 
-# ============================================================
-# SYSTEM INFO
-# ============================================================
+# ================= SYSTEM INFO =================
 if ($mainChoice -eq "1") {
-    S "SYSTEM INFO"
+    Section "SYSTEM INFO"
 
     $cpu = (Get-CimInstance Win32_Processor).Name
     $ram = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
     $gpu = (Get-CimInstance Win32_VideoController).Name
 
-    Write-Host "CPU: $cpu"
-    Write-Host "RAM: ${ram}GB"
-    Write-Host "GPU: $gpu"
+    INFO "CPU: $cpu"
+    INFO "RAM: ${ram}GB"
+    INFO "GPU: $gpu"
 
     pause
     exit
 }
 
-# ============================================================
-# RESET OLD SETTINGS
-# ============================================================
-S "RESET OLD SETTINGS"
+# ================= RESET =================
+Section "RESET OLD SETTINGS"
 
 Set-Service SysMain -StartupType Automatic -ErrorAction SilentlyContinue
 Start-Service SysMain -ErrorAction SilentlyContinue
@@ -80,82 +75,82 @@ Start-Service SysMain -ErrorAction SilentlyContinue
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
 -Name HwSchMode -Value 1 -Force -ErrorAction SilentlyContinue
 
+Set-ItemProperty "HKCU:\System\GameConfigStore" `
+-Name GameDVR_Enabled -Value 1 -Force -ErrorAction SilentlyContinue
+
+Remove-ItemProperty "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
+-Name "javaw.exe" -ErrorAction SilentlyContinue
+
 OK "Old tweaks reset"
 
-# ============================================================
-# WINDOWS SELECTION
-# ============================================================
-S "SELECT WINDOWS VERSION"
+# ================= WINDOWS SELECT =================
+Section "SELECT WINDOWS VERSION"
 
-$winOptions = @("Windows 10","Windows 11")
+$win = @("Windows 10","Windows 11")
 
-for ($i=0; $i -lt $winOptions.Count; $i++){
-    Write-Host " [$i] $($winOptions[$i])"
+for ($i=0; $i -lt $win.Count; $i++){
+    Write-Host " [$i] $($win[$i])"
 }
 
 $winChoice = Read-Host "`nEnter option"
 
-# ============================================================
-# MODE MENU
-# ============================================================
-S "SELECT MODE"
+# ================= MODE SELECT =================
+Section "SELECT MODE"
 
-$options = @(
-    "Full Optimize",
+$modes = @(
+    "Full Optimize (Recommended)",
     "Gaming Mode",
-    "Boot Optimization",
-    "RAM Cleanup"
+    "Boot Optimization Only",
+    "RAM Cleanup Only"
 )
 
-for ($i=0; $i -lt $options.Count; $i++){
-    Write-Host " [$i] $($options[$i])"
+for ($i=0; $i -lt $modes.Count; $i++){
+    Write-Host " [$i] $($modes[$i])"
 }
 
-$choice = Read-Host "`nEnter option"
+$mode = Read-Host "`nEnter option"
 
-# ============================================================
-# COMMON OPTIMIZATION
-# ============================================================
-S "BASE OPTIMIZATION"
+# ================= BASE OPTIMIZATION =================
+Section "BASE OPTIMIZATION"
 
 powercfg -setactive SCHEME_MIN
-bcdedit /timeout 2 | Out-Null
 powercfg /hibernate on
+bcdedit /timeout 2 | Out-Null
 
 New-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" `
 -Name StartupDelayInMSec -Value 0 -Force -ErrorAction SilentlyContinue
 
-OK "Base tweaks applied"
+OK "Boot base optimized"
 
-# ============================================================
-# WINDOWS SPECIFIC
-# ============================================================
+# ================= WINDOWS SPECIFIC =================
 if ($winChoice -eq "0") {
-    S "WINDOWS 10 TWEAKS"
+    Section "WINDOWS 10 TWEAKS"
 
     Set-Service DiagTrack -StartupType Disabled -ErrorAction SilentlyContinue
     Stop-Service DiagTrack -Force -ErrorAction SilentlyContinue
 
     Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
     -Name HwSchMode -Value 1 -Force
-}
 
+    OK "Windows 10 tuned"
+}
 elseif ($winChoice -eq "1") {
-    S "WINDOWS 11 TWEAKS"
+    Section "WINDOWS 11 TWEAKS"
 
     Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
     -Name HwSchMode -Value 2 -Force
+
+    OK "Windows 11 tuned"
 }
 
-# ============================================================
-# MODE EXECUTION
-# ============================================================
+# ================= MODE LOGIC =================
 
 # FULL
-if ($choice -eq "0") {
+if ($mode -eq "0") {
 
-S "FULL OPTIMIZATION"
+Section "FULL OPTIMIZATION"
 
+# Startup apps clean (safe)
 $startup = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
 Get-ItemProperty $startup | ForEach-Object {
     $_.PSObject.Properties | Where-Object {$_.Name -notmatch "SecurityHealth"} | ForEach-Object {
@@ -163,16 +158,23 @@ Get-ItemProperty $startup | ForEach-Object {
     }
 }
 
+# Services trim (safe only)
+$services = "DiagTrack","MapsBroker","Fax"
+foreach ($s in $services){
+    Set-Service $s -StartupType Disabled -ErrorAction SilentlyContinue
+}
+
+# Pagefile (safe)
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
 -Name PagingFiles -Value "C:\pagefile.sys 8192 16384"
 
-OK "Full optimization applied"
+OK "Full optimization done"
 }
 
 # GAMING
-elseif ($choice -eq "1") {
+elseif ($mode -eq "1") {
 
-S "GAMING MODE"
+Section "GAMING MODE"
 
 Get-Process javaw -ErrorAction SilentlyContinue | ForEach-Object {
     $_.PriorityClass="High"
@@ -181,25 +183,27 @@ Get-Process javaw -ErrorAction SilentlyContinue | ForEach-Object {
 New-ItemProperty "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
 -Name "javaw.exe" -Value "GpuPreference=2;" -Force | Out-Null
 
+Set-ItemProperty "HKCU:\System\GameConfigStore" GameDVR_Enabled 0 -Force
+
 OK "Gaming optimized"
 }
 
 # BOOT
-elseif ($choice -eq "2") {
+elseif ($mode -eq "2") {
 
-S "BOOT OPTIMIZATION"
+Section "BOOT OPTIMIZATION"
 
 Get-ScheduledTask | Where-Object {
     $_.TaskName -match "Updater|Telemetry"
 } | Disable-ScheduledTask -ErrorAction SilentlyContinue
 
-OK "Boot optimized"
+OK "Boot improved"
 }
 
 # RAM
-elseif ($choice -eq "3") {
+elseif ($mode -eq "3") {
 
-S "RAM CLEANUP"
+Section "RAM CLEAN"
 
 Get-Process | Where-Object {
     $_.ProcessName -match "Discord|Spotify|Teams|Skype"
@@ -207,22 +211,18 @@ Get-Process | Where-Object {
 
 [System.GC]::Collect()
 
-OK "RAM cleaned"
+OK "RAM freed"
 }
 
-# ============================================================
-# CLEANUP
-# ============================================================
-S "FINAL CLEANUP"
+# ================= FINAL CLEAN =================
+Section "FINAL CLEAN"
 
 Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 ipconfig /flushdns | Out-Null
 
-OK "System cleaned"
+OK "Cleaned"
 
-# ============================================================
-# REBOOT OPTION
-# ============================================================
+# ================= REBOOT =================
 Write-Host "`nReboot recommended (Y/N): " -NoNewline
 $r = Read-Host
 
