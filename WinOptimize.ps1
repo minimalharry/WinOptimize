@@ -1,179 +1,144 @@
 # ============================================================
-#  WinOptimize ULTRA (Linux-style Smart Optimizer)
-#  Author: Harry (https://github.com/minimalharry/)
+# WinOptimize - i5 8350U + UHD620 + 8GB Optimized
+# Author: Harry (minimalharry)
 # ============================================================
 
 # ADMIN CHECK
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
 [Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Host "❌ Run as Administrator!" -ForegroundColor Red
-    pause
-    exit
+    Write-Host "Run as admin!" -ForegroundColor Red
+    pause; exit
 }
 
-# UI
-function S($t){Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan;Write-Host " ✦ $t" -ForegroundColor Yellow}
+function S($t){Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan;Write-Host " ✦ $t" -ForegroundColor Yellow}
 function OK($m){Write-Host "  ✅ $m" -ForegroundColor Green}
-function INFO($m){Write-Host "  ℹ️  $m" -ForegroundColor Cyan}
 
 Clear-Host
 
-# FIXED CLEAN ASCII
 Write-Host @"
 ██╗    ██╗██╗███╗   ██╗ ██████╗ ██████╗ ████████╗
 ██║    ██║██║████╗  ██║██╔═══██╗██╔══██╗╚══██╔══╝
 ██║ █╗ ██║██║██╔██╗ ██║██║   ██║██████╔╝   ██║
 ██║███╗██║██║██║╚██╗██║██║   ██║██╔═══╝    ██║
 ╚███╔███╔╝██║██║ ╚████║╚██████╔╝██║        ██║
- ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝        ╚═╝
-
-     WinOptimize ULTRA (AI + Linux Style)
-     github.com/minimalharry
+ ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝
+UHD620 OPTIMIZED BUILD (LOW-END TUNED)
+github.com/minimalharry
 "@ -ForegroundColor Magenta
 
 # ============================================================
-# 🔍 FULL HARDWARE SCAN
+# 🎯 PROFILE LOCK (FOR YOUR PC)
 # ============================================================
-S "FULL HARDWARE SCAN"
-
-$cpu = Get-CimInstance Win32_Processor
-$ram = Get-CimInstance Win32_PhysicalMemory
-$gpu = Get-CimInstance Win32_VideoController
-
-$cpuName = $cpu.Name
-$cores = $cpu.NumberOfCores
-$threads = $cpu.NumberOfLogicalProcessors
-
-$ramTotal = [math]::Round(($ram.Capacity | Measure-Object -Sum).Sum / 1GB)
-$ramSpeed = ($ram.Speed | Select-Object -First 1)
-$ramType = ($ram.MemoryType | Select-Object -First 1)
-
-$gpuName = $gpu.Name
-
-INFO "CPU: $cpuName"
-INFO "Cores: $cores | Threads: $threads"
-INFO "RAM: $ramTotal GB @ ${ramSpeed}MHz"
-INFO "GPU: $gpuName"
+$PROFILE="LOW-END"
 
 # ============================================================
-# 🧠 PROFILE ENGINE
+# ⚡ POWER + CPU
 # ============================================================
-S "AI PERFORMANCE PROFILE"
+S "CPU + POWER OPTIMIZATION"
 
-if ($ramTotal -le 8 -or $cores -le 4) {
-    $PROFILE="LOW"
-}
-elseif ($ramTotal -le 16) {
-    $PROFILE="MID"
-}
-else {
-    $PROFILE="HIGH"
-}
+powercfg -setactive SCHEME_MIN
+powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 100
+powercfg /setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100
 
-OK "Profile: $PROFILE"
+OK "CPU unlocked for max performance"
 
 # ============================================================
-# ⚡ BOOT TIME OPTIMIZATION (IMPORTANT)
+# 🎮 GPU (IMPORTANT FOR UHD620)
 # ============================================================
-S "BOOT OPTIMIZATION"
+S "GPU OPTIMIZATION (INTEL UHD)"
 
-# Disable startup delay
-Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" `
+# HAGS OFF (important!)
+Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
+-Name HwSchMode -Value 1 -Force
+
+# GPU priority for Java
+New-ItemProperty "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
+-Name "javaw.exe" -Value "GpuPreference=2;" -Force | Out-Null
+
+OK "Intel GPU optimized"
+
+# ============================================================
+# 🧠 RAM (CRITICAL FIX)
+# ============================================================
+S "RAM FIX (MOST IMPORTANT)"
+
+# Pagefile safe increase
+Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
+-Name PagingFiles -Value "C:\pagefile.sys 8192 16384"
+
+# ENABLE SysMain (important for HDD/low RAM)
+Set-Service SysMain -StartupType Automatic
+Start-Service SysMain -ErrorAction SilentlyContinue
+
+OK "RAM pressure fixed"
+
+# ============================================================
+# 🚀 STARTUP BOOST
+# ============================================================
+S "STARTUP OPTIMIZATION"
+
+New-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" `
 -Name StartupDelayInMSec -Value 0 -Force -ErrorAction SilentlyContinue
 
-# Fast startup enable
 powercfg /hibernate on
-OK "Fast boot enabled"
 
-# Disable useless startup apps (hard cleanup)
-$startup = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
-Get-ItemProperty $startup | ForEach-Object {
-    $_.PSObject.Properties | Where-Object {$_.Name -notmatch "SecurityHealth"} | ForEach-Object {
-        Remove-ItemProperty -Path $startup -Name $_.Name -ErrorAction SilentlyContinue
-    }
+OK "Boot speed improved"
+
+# ============================================================
+# 🧹 BACKGROUND CLEAN (BIG FPS BOOST)
+# ============================================================
+S "BACKGROUND PROCESS CLEAN"
+
+$apps = @(
+"OneDrive","Skype","Teams","Discord","Spotify","EpicGamesLauncher"
+)
+
+foreach ($app in $apps){
+    Get-Process $app -ErrorAction SilentlyContinue | Stop-Process -Force
 }
 
-OK "Startup cleaned (fast boot)"
+OK "Background apps killed"
 
 # ============================================================
-# 🧠 CPU SCHEDULER TUNING
+# 🎮 MINECRAFT (REAL BOOST)
 # ============================================================
-S "CPU OPTIMIZATION"
+S "MINECRAFT OPTIMIZATION"
 
-# Prioritize foreground apps (games)
-Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl" `
--Name Win32PrioritySeparation -Value 26 -Force
-
-OK "CPU scheduling optimized"
-
-# ============================================================
-# 🎮 GPU + MINECRAFT ENGINE
-# ============================================================
-S "GAMING ENGINE"
-
-# GPU scheduling
-Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
--Name HwSchMode -Value 2 -Force
-
-# Minecraft boost
 Get-Process javaw -ErrorAction SilentlyContinue | ForEach-Object {
     $_.PriorityClass="High"
 }
 
-New-ItemProperty -Path "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
--Name "javaw.exe" -Value "GpuPreference=2;" -Force | Out-Null
+# Disable fullscreen optimization
+reg add "HKCU\System\GameConfigStore" /v "GameDVR_FSEBehaviorMode" /t REG_DWORD /d 2 /f
 
-OK "Minecraft + GPU optimized"
-
-# ============================================================
-# 🧠 RAM ENGINE (SAFE + SMART)
-# ============================================================
-S "MEMORY ENGINE"
-
-$ramMB = [math]::Round(($ram.Capacity | Measure-Object -Sum).Sum / 1MB)
-
-$initial = [math]::Min([math]::Max($ramMB*1.2,4096),16384)
-$max = [math]::Min([math]::Max($ramMB*2,8192),32768)
-
-Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
--Name PagingFiles -Value "C:\pagefile.sys $initial $max"
-
-Stop-Service SysMain -Force -ErrorAction SilentlyContinue
-Set-Service SysMain -StartupType Disabled
-
-OK "RAM optimized"
+OK "Minecraft optimized"
 
 # ============================================================
-# 🌐 NETWORK (LOW LATENCY)
+# 🌐 NETWORK
 # ============================================================
-S "NETWORK ENGINE"
+S "NETWORK LOW LATENCY"
 
 Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces" | ForEach-Object {
     Set-ItemProperty $_.PSPath TcpAckFrequency 1 -Force
     Set-ItemProperty $_.PSPath TCPNoDelay 1 -Force
 }
 
-OK "Network latency reduced"
+OK "Ping reduced"
 
 # ============================================================
-# 🧹 SYSTEM CLEANUP
+# 🧹 CLEANUP
 # ============================================================
-S "SYSTEM CLEANUP"
+S "CLEANUP"
 
 Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 ipconfig /flushdns | Out-Null
 
-OK "System cleaned"
+OK "Cleaned"
 
 # ============================================================
-# 🎉 DONE
+# DONE
 # ============================================================
 Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-Write-Host " ✔ SYSTEM FULLY OPTIMIZED" -ForegroundColor Green
-Write-Host " ⚡ Linux-style performance applied" -ForegroundColor Cyan
-Write-Host " 👨‍💻 Credit: minimalharry" -ForegroundColor Yellow
+Write-Host " ✔ OPTIMIZED FOR UHD 620 SYSTEM" -ForegroundColor Green
+Write-Host " ⚡ Expect smoother gameplay now" -ForegroundColor Cyan
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-
-Write-Host "`nReboot recommended (Y/N): " -NoNewline
-$r = Read-Host
-if ($r -eq "Y"){Restart-Computer -Force}
