@@ -1,6 +1,6 @@
 # ============================================================
-# WinOptimize PRO ULTIMATE
-# Author: Harry (https://github.com/minimalharry/)
+# WinOptimize ULTIMATE (Menu + Boot + Gaming + Safe Engine)
+# Author: Harry (minimalharry)
 # ============================================================
 
 # ADMIN CHECK
@@ -10,18 +10,16 @@ if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     pause; exit
 }
 
-# UI FUNCTIONS
+# UI
 function S($t){
     Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     Write-Host "  ✦ $t" -ForegroundColor Yellow
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 }
 function OK($m){Write-Host "  ✅ $m" -ForegroundColor Green}
-function INFO($m){Write-Host "  ℹ️  $m" -ForegroundColor Cyan}
 
 Clear-Host
 
-# ASCII (FIXED)
 Write-Host @"
 ██╗    ██╗██╗███╗   ██╗ ██████╗ ██████╗ ████████╗
 ██║    ██║██║████╗  ██║██╔═══██╗██╔══██╗╚══██╔══╝
@@ -30,12 +28,49 @@ Write-Host @"
 ╚███╔███╔╝██║██║ ╚████║╚██████╔╝██║        ██║
  ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝        ╚═╝
 
-        WinOptimize PRO ULTIMATE
+        WinOptimize ULTIMATE
         github.com/minimalharry
 "@ -ForegroundColor Magenta
 
 # ============================================================
-# RESET OLD SETTINGS (IMPORTANT FOR RE-RUN)
+# MAIN MENU
+# ============================================================
+S "MAIN MENU"
+
+$mainOptions = @(
+    "Optimization (Windows Tuning)",
+    "System Info",
+    "Exit"
+)
+
+for ($i=0; $i -lt $mainOptions.Count; $i++){
+    Write-Host " [$i] $($mainOptions[$i])"
+}
+
+$mainChoice = Read-Host "`nSelect option"
+
+if ($mainChoice -eq "2"){ exit }
+
+# ============================================================
+# SYSTEM INFO
+# ============================================================
+if ($mainChoice -eq "1") {
+    S "SYSTEM INFO"
+
+    $cpu = (Get-CimInstance Win32_Processor).Name
+    $ram = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
+    $gpu = (Get-CimInstance Win32_VideoController).Name
+
+    Write-Host "CPU: $cpu"
+    Write-Host "RAM: ${ram}GB"
+    Write-Host "GPU: $gpu"
+
+    pause
+    exit
+}
+
+# ============================================================
+# RESET OLD SETTINGS
 # ============================================================
 S "RESET OLD SETTINGS"
 
@@ -45,40 +80,31 @@ Start-Service SysMain -ErrorAction SilentlyContinue
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
 -Name HwSchMode -Value 1 -Force -ErrorAction SilentlyContinue
 
-Set-ItemProperty "HKCU:\System\GameConfigStore" `
--Name GameDVR_Enabled -Value 1 -Force -ErrorAction SilentlyContinue
-
-Remove-ItemProperty "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
--Name "javaw.exe" -ErrorAction SilentlyContinue
-
 OK "Old tweaks reset"
 
 # ============================================================
-# WINDOWS SELECTION MENU
+# WINDOWS SELECTION
 # ============================================================
 S "SELECT WINDOWS VERSION"
 
-$winOptions = @(
-    "Windows 10",
-    "Windows 11"
-)
+$winOptions = @("Windows 10","Windows 11")
 
 for ($i=0; $i -lt $winOptions.Count; $i++){
     Write-Host " [$i] $($winOptions[$i])"
 }
 
-$winChoice = Read-Host "`nEnter Windows option"
+$winChoice = Read-Host "`nEnter option"
 
 # ============================================================
 # MODE MENU
 # ============================================================
-S "SELECT OPTIMIZATION MODE"
+S "SELECT MODE"
 
 $options = @(
-    "Full Optimize (Recommended)",
-    "Gaming Mode (Minecraft FPS)",
-    "Boot Optimization Only",
-    "RAM Cleanup Only"
+    "Full Optimize",
+    "Gaming Mode",
+    "Boot Optimization",
+    "RAM Cleanup"
 )
 
 for ($i=0; $i -lt $options.Count; $i++){
@@ -90,7 +116,7 @@ $choice = Read-Host "`nEnter option"
 # ============================================================
 # COMMON OPTIMIZATION
 # ============================================================
-S "COMMON OPTIMIZATION"
+S "BASE OPTIMIZATION"
 
 powercfg -setactive SCHEME_MIN
 bcdedit /timeout 2 | Out-Null
@@ -105,29 +131,24 @@ OK "Base tweaks applied"
 # WINDOWS SPECIFIC
 # ============================================================
 if ($winChoice -eq "0") {
-    S "WINDOWS 10 SETTINGS"
+    S "WINDOWS 10 TWEAKS"
 
     Set-Service DiagTrack -StartupType Disabled -ErrorAction SilentlyContinue
     Stop-Service DiagTrack -Force -ErrorAction SilentlyContinue
 
     Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
     -Name HwSchMode -Value 1 -Force
-
-    OK "Windows 10 optimized"
 }
+
 elseif ($winChoice -eq "1") {
-    S "WINDOWS 11 SETTINGS"
+    S "WINDOWS 11 TWEAKS"
 
     Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" `
     -Name HwSchMode -Value 2 -Force
-
-    Get-AppxPackage *WebExperience* | Remove-AppxPackage -ErrorAction SilentlyContinue
-
-    OK "Windows 11 optimized"
 }
 
 # ============================================================
-# MODE BASED LOGIC
+# MODE EXECUTION
 # ============================================================
 
 # FULL
@@ -135,7 +156,6 @@ if ($choice -eq "0") {
 
 S "FULL OPTIMIZATION"
 
-# Startup clean
 $startup = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
 Get-ItemProperty $startup | ForEach-Object {
     $_.PSObject.Properties | Where-Object {$_.Name -notmatch "SecurityHealth"} | ForEach-Object {
@@ -143,17 +163,10 @@ Get-ItemProperty $startup | ForEach-Object {
     }
 }
 
-# Services trim
-$services = "DiagTrack","MapsBroker","Fax"
-foreach ($s in $services){
-    Set-Service $s -StartupType Disabled -ErrorAction SilentlyContinue
-}
-
-# Pagefile safe
 Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" `
 -Name PagingFiles -Value "C:\pagefile.sys 8192 16384"
 
-OK "Full optimization done"
+OK "Full optimization applied"
 }
 
 # GAMING
@@ -168,8 +181,6 @@ Get-Process javaw -ErrorAction SilentlyContinue | ForEach-Object {
 New-ItemProperty "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" `
 -Name "javaw.exe" -Value "GpuPreference=2;" -Force | Out-Null
 
-Set-ItemProperty "HKCU:\System\GameConfigStore" GameDVR_Enabled 0 -Force
-
 OK "Gaming optimized"
 }
 
@@ -178,19 +189,17 @@ elseif ($choice -eq "2") {
 
 S "BOOT OPTIMIZATION"
 
-bcdedit /timeout 2 | Out-Null
-
 Get-ScheduledTask | Where-Object {
     $_.TaskName -match "Updater|Telemetry"
 } | Disable-ScheduledTask -ErrorAction SilentlyContinue
 
-OK "Boot improved"
+OK "Boot optimized"
 }
 
 # RAM
 elseif ($choice -eq "3") {
 
-S "RAM CLEAN"
+S "RAM CLEANUP"
 
 Get-Process | Where-Object {
     $_.ProcessName -match "Discord|Spotify|Teams|Skype"
@@ -198,7 +207,7 @@ Get-Process | Where-Object {
 
 [System.GC]::Collect()
 
-OK "RAM freed"
+OK "RAM cleaned"
 }
 
 # ============================================================
@@ -212,9 +221,15 @@ ipconfig /flushdns | Out-Null
 OK "System cleaned"
 
 # ============================================================
-# DONE
+# REBOOT OPTION
 # ============================================================
-Write-Host "`n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
-Write-Host "  ✔ ALL TASKS COMPLETED" -ForegroundColor Green
-Write-Host "  ⚡ WinOptimize PRO ULTIMATE ACTIVE" -ForegroundColor Cyan
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green
+Write-Host "`nReboot recommended (Y/N): " -NoNewline
+$r = Read-Host
+
+if ($r -eq "Y" -or $r -eq "y") {
+    Write-Host "Rebooting..." -ForegroundColor Red
+    Start-Sleep 3
+    Restart-Computer -Force
+}
+
+Write-Host "`nDone!"
