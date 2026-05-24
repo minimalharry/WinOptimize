@@ -3,7 +3,7 @@
 > 🚀 Smart, menu-driven PowerShell optimizer for Windows 10 & 11
 > 🎮 Gaming (Minecraft) + ⚡ Faster Boot + 🧠 Better RAM Usage
 
-# (Website)[https://wo.minimalharry.xyz/]
+[Website](https://wo.minimalharry.xyz/)
 
 ---
 
